@@ -9,7 +9,6 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 $name = $_SESSION['name'];
-
 ?>
 
 <!DOCTYPE html>
@@ -18,13 +17,17 @@ $name = $_SESSION['name'];
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="style.css" />
+    <!-- <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"> -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
     <title>Expense Tracker</title>
 </head>
 <body>
     <div>
-        <h1 style="color: green;">GeeksforGeeks</h1>
-        <h3>Expense Tracker Using JavaScript</h3>
-        <p>Hello <?php echo $name; ?>, These are your expenses</p>
+        <h1 style="color: green;">Expense Tracker</h1>
+        <h3>Hello <?php echo $name; ?>, These are your expenses</h3>
+        <p></p>
+        <!-- Logout Button -->
+        <a href="logout.php" class="btn btn-danger" style="float: right;">Logout</a>
     </div>
     <div class="summary">
         <div>
@@ -84,5 +87,6 @@ $name = $_SESSION['name'];
         </div>
     </div>
     <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
 </body>
 </html>
