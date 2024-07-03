@@ -1,3 +1,17 @@
+<?php
+session_start();
+include 'db.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+$name = $_SESSION['name'];
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +24,7 @@
     <div>
         <h1 style="color: green;">GeeksforGeeks</h1>
         <h3>Expense Tracker Using JavaScript</h3>
+        <p>Hello <?php echo $name; ?>, These are your expenses</p>
     </div>
     <div class="summary">
         <div>
