@@ -59,7 +59,7 @@ function loadItems(e, i) {
     cell0.innerHTML = i + 1;
     cell1.innerHTML = e.name;
     cell2.innerHTML = e.amount;
-    c4.innerHTML = '<i class="fas fa-trash-alt"></i>';
+    c4.innerHTML = '<i class="fa fa-trash-alt"></i>';
     c4.classList.add("zoom");
     c4.addEventListener("click", () => del(e));
     if (e.type == 0) {
