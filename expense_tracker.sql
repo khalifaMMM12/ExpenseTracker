@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 03, 2024 at 09:57 PM
+-- Generation Time: Jul 22, 2024 at 01:59 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -24,26 +24,28 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `entries`
+-- Table structure for table `expenses`
 --
 
-CREATE TABLE `entries` (
+CREATE TABLE `expenses` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `type` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `amount` decimal(10,2) NOT NULL
+  `name` varchar(255) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `type` tinyint(1) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `entries`
+-- Dumping data for table `expenses`
 --
 
-INSERT INTO `entries` (`id`, `user_id`, `type`, `name`, `amount`) VALUES
-(5, 1, 1, 'school fees', 50000.00),
-(6, 1, 1, 'school fees', 50000.00),
-(7, 1, 1, 'school fees', 50000.00),
-(8, 1, 0, 'school fees', 50000.00);
+INSERT INTO `expenses` (`id`, `user_id`, `name`, `amount`, `type`, `created_at`) VALUES
+(1, 2, 'books', 40000.00, 0, '2024-07-22 11:45:38'),
+(2, 2, 'sold books', 2000.00, 1, '2024-07-22 11:46:03'),
+(3, 3, 'books', 40000.00, 0, '2024-07-22 11:47:27'),
+(4, 3, 'allowance', 80000.00, 1, '2024-07-22 11:47:47'),
+(5, 3, 'allowance', 1000536.00, 1, '2024-07-22 11:50:26');
 
 -- --------------------------------------------------------
 
@@ -64,16 +66,18 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `username`, `password`) VALUES
-(1, 'khalifa', 'khalifa@gmail.com', 'MMM', '$2y$10$YjPbhYoaXFHYXTYeTEPKNukgbEmDrhdrTvueuYCC8FcXm5H5zqSYy');
+(1, 'khalifa', 'khalifa@gmail.com', 'MMM', '$2y$10$YjPbhYoaXFHYXTYeTEPKNukgbEmDrhdrTvueuYCC8FcXm5H5zqSYy'),
+(2, 'khalifa', 'khalifa@gmail.com', 'khalifa', '$2y$10$h.BzFHxMqrBWeyuWwHKqdeK9D31cOazBJV2E71ItZrqKYmCj2BS3q'),
+(3, 'jafar', 'jafar@gmail.com', 'orezi', '$2y$10$e5oXDtgPC2PDUTv76jLC7eIef04yogA5y4pkdLuSb/zhHuH9TnLfy');
 
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indexes for table `entries`
+-- Indexes for table `expenses`
 --
-ALTER TABLE `entries`
+ALTER TABLE `expenses`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
 
@@ -88,26 +92,26 @@ ALTER TABLE `users`
 --
 
 --
--- AUTO_INCREMENT for table `entries`
+-- AUTO_INCREMENT for table `expenses`
 --
-ALTER TABLE `entries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+ALTER TABLE `expenses`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables
 --
 
 --
--- Constraints for table `entries`
+-- Constraints for table `expenses`
 --
-ALTER TABLE `entries`
-  ADD CONSTRAINT `entries_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+ALTER TABLE `expenses`
+  ADD CONSTRAINT `expenses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

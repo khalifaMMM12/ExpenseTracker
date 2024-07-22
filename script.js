@@ -1,176 +1,143 @@
-async function fetchEntries() {
-    const response = await fetch('fetch_entries.php');
-    const data = await response.json();
-    return data;
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Ensure user_id is defined and available
+    let user_id = document.getElementById('user-id').textContent.trim();
 
-async function addItem() {
-    let type = document.getElementById("itemType").value;
-    let name = document.getElementById("name").value;
-    let amount = document.getElementById("amount").value;
+    // Existing expenses
+    let tableEntries = [];
+    try {
+        tableEntries = JSON.parse(document.getElementById('expenses-data').textContent);
+    } catch (e) {
+        console.error("Failed to parse expenses data:", e);
+    }
 
-    if (name === "" || Number(amount) === 0) return alert("Incorrect Input");
-    if (Number(amount) <= 0) return alert("Incorrect amount! can't add negative");
+    // Function to format numbers with commas and Naira sign
+    function formatCurrency(amount) {
+        return "₦" + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
-    const formData = new FormData();
-    formData.append('type', type);
-    formData.append('name', name);
-    formData.append('amount', amount);
+    // Function to update data expense summary
+    function updateSummary() {
+        let totalIncome = tableEntries.reduce((t, e) => {
+            if (e.type === '1') t += parseFloat(e.amount);
+            return t;
+        }, 0);
+        let totalExpense = tableEntries.reduce((ex, e) => {
+            if (e.type === '0') ex += parseFloat(e.amount);
+            return ex;
+        }, 0);
+        document.getElementById('updatedInc').innerText = formatCurrency(totalIncome);
+        document.getElementById('updatedExp').innerText = formatCurrency(totalExpense);
+        document.getElementById('updatedBal').innerText = formatCurrency(totalIncome - totalExpense);
+    }
 
-    await fetch('add_entry.php', {
-        method: 'POST',
-        body: formData
-    });
+    // Function to add new entry to the dataset and expense table
+    window.addItem = function() {
+        let type = document.getElementById('itemType').value;
+        let name = document.getElementById('name').value;
+        let amount = document.getElementById('amount').value;
+
+        // Input validation
+        if (name === "" || Number(amount) === 0) {
+            return alert("Incorrect Input");
+        }
+        if (Number(amount) <= 0) {
+            return alert("Incorrect amount! Can't add negative");
+        }
+
+        // Push new data to database
+        fetch('add_expense.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_id: user_id,
+                type: type,
+                name: name,
+                amount: amount
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                tableEntries.push({
+                    id: data.id,
+                    user_id: user_id,
+                    type: type,
+                    name: name,
+                    amount: amount
+                });
+                updateTable();
+            } else {
+                alert("Error adding expense");
+            }
+        });
+
+        document.getElementById('name').value = "";
+        document.getElementById('amount').value = 0;
+    }
+
+    // Function to delete a specific entry
+    function deleteExpense(id) {
+        fetch('delete_expense.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id: id }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                tableEntries = tableEntries.filter(e => e.id != id);
+                updateTable();
+            } else {
+                alert("Error deleting expense");
+            }
+        });
+    }
+
+    // Function to load all entry in the expense table
+    function loadItems(e, i) {
+        let cls;
+        let table = document.getElementById('table');
+        let row = table.insertRow(i + 1);
+        let cell0 = row.insertCell(0);
+        let cell1 = row.insertCell(1);
+        let cell2 = row.insertCell(2);
+        let c3 = row.insertCell(3);
+        let c4 = row.insertCell(4);
+
+        cell0.innerHTML = i + 1;
+        cell1.innerHTML = e.name;
+        cell2.innerHTML = formatCurrency(e.amount); // Format here
+        c4.innerHTML = '<i class="fas fa-trash-alt"></i>';
+        c4.classList.add("zoom");
+        c4.addEventListener("click", () => deleteExpense(e.id));
+        if (e.type === '0') {
+            cls = "red";
+            c3.innerHTML = "➚";
+        } else {
+            cls = "green";
+            c3.innerHTML = "➘";
+        }
+        c3.style.color = cls;
+    }
+
+    // Clear the table before updating
+    function remove() {
+        let table = document.getElementById('table');
+        while (table.rows.length > 1) table.deleteRow(-1);
+    }
+
+    // To render all entries
+    function updateTable() {
+        remove();
+        tableEntries.map((e, i) => {
+            loadItems(e, i);
+        });
+        updateSummary();
+    }
 
     updateTable();
-}
-
-function loadItems(entries) {
-    const table = document.getElementById("table");
-    while (table.rows.length > 1) table.deleteRow(1);
-    let totalIncome = 0;
-    let totalExpense = 0;
-
-    entries.forEach((entry, index) => {
-        let row = table.insertRow(index + 1);
-        row.insertCell(0).innerText = index + 1;
-        row.insertCell(1).innerText = entry.name;
-        row.insertCell(2).innerText = entry.amount;
-
-        let typeCell = row.insertCell(3);
-        typeCell.innerText = entry.type == 0 ? "Expense" : "Income";
-        typeCell.style.color = entry.type == 0 ? "red" : "green";
-
-        let deleteCell = row.insertCell(4);
-        deleteCell.innerHTML = "☒";
-        deleteCell.classList.add("zoom");
-        deleteCell.onclick = () => deleteItem(entry.id);
-
-        if (entry.type == 1) totalIncome += parseFloat(entry.amount);
-        else totalExpense += parseFloat(entry.amount);
-    });
-
-    document.getElementById("updatedInc").innerText = totalIncome;
-    document.getElementById("updatedExp").innerText = totalExpense;
-    document.getElementById("updatedBal").innerText = totalIncome - totalExpense;
-}
-
-async function updateTable() {
-    const entries = await fetchEntries();
-    loadItems(entries);
-}
-
-async function deleteItem(id) {
-    const formData = new FormData();
-    formData.append('id', id);
-
-    await fetch('delete_entry.php', {
-        method: 'POST',
-        body: formData
-    });
-
-    updateTable();
-}
-
-updateTable();
-
-
-
-// // Initial Data
-// let tableEntries = [
-//     { type: 1, name: "income", amount: 25000 },
-//     { type: 0, name: "rent", amount: 18000 },
-//     { type: 0, name: "food", amount: 5000 },
-// ];
-
-// // Function to update data expense summary
-// function updateSummary() {
-//     let totalIncome = tableEntries.reduce((t, e) => {
-//         if (e.type === 1) t += e.amount;
-//         return t;
-//     }, 0);
-//     let totalExpense = tableEntries.reduce((ex, e) => {
-//         if (e.type === 0) ex += e.amount;
-//         return ex;
-//     }, 0);
-//     document.getElementById('updatedInc').innerText = totalIncome;
-//     document.getElementById('updatedExp').innerText = totalExpense;
-//     document.getElementById('updatedBal').innerText = totalIncome - totalExpense;
-// }
-
-// // Function to add new entry to the dataset and expense table
-// function addItem() {
-//     let type = document.getElementById('itemType').value;
-//     let name = document.getElementById('name');
-//     let amount = document.getElementById('amount');
-
-//     // Input validation
-//     if (name.value === "" || Number(amount.value) === 0) {
-//         return alert("Incorrect Input");
-//     }
-//     if (Number(amount.value) <= 0) {
-//         return alert("Incorrect amount! can't add negative");
-//     }
-
-//     // Push new data
-//     tableEntries.push({
-//         type: Number(type),
-//         name: name.value,
-//         amount: Number(amount.value),
-//     });
-//     updateTable();
-//     name.value = "";
-//     amount.value = 0;
-// }
-
-// // Function to load all entry in the expense table
-// function loadItems(e, i) {
-//     let cls;
-//     let table = document.getElementById('table');
-//     let row = table.insertRow(i + 1);
-//     let cell0 = row.insertCell(0);
-//     let cell1 = row.insertCell(1);
-//     let cell2 = row.insertCell(2);
-//     let c3 = row.insertCell(3);
-//     let c4 = row.insertCell(4);
-
-//     cell0.innerHTML = i + 1;
-//     cell1.innerHTML = e.name;
-//     cell2.innerHTML = e.amount;
-//     c4.innerHTML = '<i class="fa fa-trash-alt"></i>';
-//     c4.classList.add("zoom");
-//     c4.addEventListener("click", () => del(e));
-//     if (e.type == 0) {
-//         cls = "red";
-//         c3.innerHTML = "➚";
-//     } else {
-//         cls = "green";
-//         c3.innerHTML = "➘";
-//     }
-//     c3.style.color = cls;
-// }
-
-// // Clear the table before updating
-// function remove() {
-//     let table = document.getElementById('table');
-//     while (table.rows.length > 1) table.deleteRow(-1);
-// }
-
-// // Function to delete a specific entry
-// function del(el) {
-//     remove();
-//     tableEntries = tableEntries.filter((e) => e.name !== el.name);
-//     tableEntries.map((e, i) => loadItems(e, i));
-//     updateSummary();
-// }
-
-// // To render all entries
-// function updateTable() {
-//     remove();
-//     tableEntries.map((e, i) => {
-//         loadItems(e, i);
-//     });
-//     updateSummary();
-// }
-
-// updateTable();
+});

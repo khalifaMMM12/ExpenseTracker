@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-$sql = "SELECT * FROM entries WHERE user_id='$user_id'";
+$sql = "SELECT * FROM expenses WHERE user_id='$user_id'";
 $result = $conn->query($sql);
 
 $entries = [];
