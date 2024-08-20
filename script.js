@@ -77,27 +77,30 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('amount').value = 0;
     }
 
-    // Function to delete a specific entry
     function deleteExpense(id) {
-        fetch('delete_expense.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ id: id }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                tableEntries = tableEntries.filter(e => e.id != id);
-                updateTable();
-            } else {
-                alert("Error deleting expense");
-            }
-        });
+        // Confirm deletion with a Yes/No prompt
+        if (confirm("Are you sure you want to delete this expense?")) {
+            fetch('delete_expense.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id: id }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    tableEntries = tableEntries.filter(e => e.id != id);
+                    updateTable();
+                    alert("Expense deleted successfully.");
+                } else {
+                    alert("Error deleting expense.");
+                }
+            });
+        }
     }
 
-    // Function to load all entry in the expense table
+    // Function to load all entries in the expense table
     function loadItems(e, i) {
         let cls;
         let table = document.getElementById('table');
@@ -107,13 +110,19 @@ document.addEventListener('DOMContentLoaded', function() {
         let cell2 = row.insertCell(2);
         let c3 = row.insertCell(3);
         let c4 = row.insertCell(4);
+        let c5 = row.insertCell(5); // New column for the edit button
 
         cell0.innerHTML = i + 1;
         cell1.innerHTML = e.name;
-        cell2.innerHTML = formatCurrency(e.amount); // Format here
+        cell2.innerHTML = formatCurrency(e.amount);
         c4.innerHTML = '<i class="fas fa-trash-alt"></i>';
         c4.classList.add("zoom");
         c4.addEventListener("click", () => deleteExpense(e.id));
+
+        c5.innerHTML = '<i class="fas fa-edit"></i>'; // Add edit icon
+        c5.classList.add("zoom");
+        c5.addEventListener("click", () => editExpense(e.id)); // Attach edit handler
+
         if (e.type === '0') {
             cls = "red";
             c3.innerHTML = "➚";
@@ -140,4 +149,90 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     updateTable();
+
+    // Get the modal
+    var modal = document.getElementById("editModal");
+
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    // Function to open the edit modal with the expense data
+    window.editExpense = function(id) {
+        const expense = tableEntries.find(exp => exp.id == id);
+
+        document.getElementById("editItemType").value = expense.type;
+        document.getElementById("editName").value = expense.name;
+        document.getElementById("editAmount").value = expense.amount;
+        document.getElementById("editId").value = expense.id;
+
+        modal.style.display = "block";
+    }
+
+    // Function to save the edited expense
+    window.saveEdit = function(event) {
+        event.preventDefault();
+    
+        // Collect form data
+        const id = document.getElementById("editId").value;
+        const type = document.getElementById("editItemType").value;
+        const name = document.getElementById("editName").value;
+        const amount = document.getElementById("editAmount").value;
+    
+        // Validate form data
+        if (name === "" || amount === "" || isNaN(amount) || amount <= 0) {
+            alert("Please fill all fields correctly.");
+            return;
+        }
+    
+        // Send data to update_expense.php
+        fetch('update_expense.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id: id,
+                type: type,
+                name: name,
+                amount: amount
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Find the index of the updated expense in the table entries
+                const index = tableEntries.findIndex(exp => exp.id == id);
+    
+                // Update the entry locally
+                tableEntries[index].type = type;
+                tableEntries[index].name = name;
+                tableEntries[index].amount = amount;
+    
+                // Refresh the table
+                updateTable();
+    
+                // Close the modal
+                document.getElementById("editModal").style.display = "none";
+            } else {
+                alert("Error saving changes.");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Error updating the expense.");
+        });
+    }
+    
 });

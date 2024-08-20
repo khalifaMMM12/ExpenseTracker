@@ -59,7 +59,7 @@ if ($result->num_rows > 0) {
     </div>
     <div class="root">
         <div id="items">
-            <h2>Expenses</h2>
+            <h2>Expense</h2>
             <table id="table">
                 <tr class="titles">
                     <th>S.no.</th>
@@ -67,6 +67,7 @@ if ($result->num_rows > 0) {
                     <th>Amount</th>
                     <th>Type</th>
                     <th>Delete</th>
+                    <th>Edit</th>
                 </tr>
                 <?php foreach ($expenses as $index => $expense): ?>
                 <tr>
@@ -75,6 +76,7 @@ if ($result->num_rows > 0) {
                     <td><?php echo htmlspecialchars($expense['amount']); ?></td>
                     <td><?php echo $expense['type'] == 1 ? 'Income' : 'Expense'; ?></td>
                     <td><i class="fas fa-trash-alt" onclick="deleteExpense(<?php echo $expense['id']; ?>)"></i></td>
+                    <td><i class="fas fa-edit" onclick="editExpense(<?php echo $expense['id']; ?>)"></i></td>
                 </tr>
                 <?php endforeach; ?>
             </table>
@@ -102,6 +104,35 @@ if ($result->num_rows > 0) {
             <button onclick="addItem()">Add Expense</button>
         </div>
     </div>
+
+    <!-- Edit Expense Modal -->
+    <div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Edit Expee</h2>
+        <form id="editForm">
+            <div class="inputitem">
+                <p>Entry type:</p>
+                <select id="editItemType">
+                    <option value="0">Expense</option>
+                    <option value="1">Income</option>
+                </select>
+            </div>
+            <div class="inputitem">
+                <p>Name:</p>
+                <input id="editName" type="text" required />
+            </div>
+            <div class="inputitem">
+                <p>Amount:</p>
+                <input id="editAmount" type="number" required />
+            </div>
+            <input type="hidden" id="editId" />
+            <button type="button" onclick="saveEdit(event)">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+
     <!-- For storing user_id -->
     <span id="user-id" style="display: none;"><?php echo htmlspecialchars($user_id); ?></span>
 
