@@ -109,7 +109,7 @@ if ($result->num_rows > 0) {
     <div id="editModal" class="modal">
     <div class="modal-content">
         <span class="close">&times;</span>
-        <h2>Edit Expee</h2>
+        <h2>Edit Expense</h2>
         <form id="editForm">
             <div class="inputitem">
                 <p>Entry type:</p>

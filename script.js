@@ -180,59 +180,89 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.style.display = "block";
     }
 
-    // Function to save the edited expense
-    window.saveEdit = function(event) {
-        event.preventDefault();
-    
-        // Collect form data
-        const id = document.getElementById("editId").value;
-        const type = document.getElementById("editItemType").value;
-        const name = document.getElementById("editName").value;
-        const amount = document.getElementById("editAmount").value;
-    
-        // Validate form data
-        if (name === "" || amount === "" || isNaN(amount) || amount <= 0) {
-            alert("Please fill all fields correctly.");
-            return;
+    // Function to open the edit modal and populate it with existing data
+    function editExpense(id) {
+        const expense = tableEntries.find(exp => exp.id == id);
+
+        if (expense) {
+            // Set form values with the existing expense data
+            document.getElementById('editId').value = expense.id;
+            document.getElementById('editItemType').value = expense.type;
+            document.getElementById('editName').value = expense.name;
+            document.getElementById('editAmount').value = expense.amount;
+
+            // Show the modal
+            document.getElementById('editModal').style.display = "block";
         }
-    
-        // Send data to update_expense.php
-        fetch('update_expense.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                id: id,
-                type: type,
-                name: name,
-                amount: amount
-            }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Find the index of the updated expense in the table entries
-                const index = tableEntries.findIndex(exp => exp.id == id);
-    
-                // Update the entry locally
-                tableEntries[index].type = type;
-                tableEntries[index].name = name;
-                tableEntries[index].amount = amount;
-    
-                // Refresh the table
-                updateTable();
-    
-                // Close the modal
-                document.getElementById("editModal").style.display = "none";
-            } else {
-                alert("Error saving changes.");
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("Error updating the expense.");
-        });
     }
+
+    // Function to save the edited expense
+        function saveEdit(event) {
+            event.preventDefault();
+
+            // Collect form data
+            const id = document.getElementById("editId").value;
+            const type = document.getElementById("editItemType").value;
+            const name = document.getElementById("editName").value;
+            const amount = document.getElementById("editAmount").value;
+
+            // Validate form data
+            if (name === "" || amount === "" || isNaN(amount) || amount <= 0) {
+                alert("Please fill all fields correctly.");
+                return;
+            }
+
+            // Send the updated expense to the backend
+            fetch('update_expense.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: id,
+                    type: type,
+                    name: name,
+                    amount: amount
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Find the updated expense in the table and update it locally
+                    const index = tableEntries.findIndex(exp => exp.id == id);
+                    if (index !== -1) {
+                        tableEntries[index].type = type;
+                        tableEntries[index].name = name;
+                        tableEntries[index].amount = amount;
+                        
+                        // Refresh the table display
+                        updateTable();
+                    }
+
+                    // Close the modal
+                    document.getElementById("editModal").style.display = "none";
+                } else {
+                    alert("Error saving changes: " + data.error);
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("An error occurred while updating the expense.");
+            });
+        }
+
+        // Event listener for closing the modal
+        document.querySelector('.close').onclick = function() {
+            document.getElementById("editModal").style.display = "none";
+        };
+
+        // Close modal if clicked outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById("editModal");
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        };
+
     
 });
